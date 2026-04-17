@@ -6,6 +6,7 @@ const SECRET_KEY = process.env.JWT_SECRET;
 
 export const registeruser = async (req, res) => {
   try {
+     console.log("BODY:", req.body);
     const { name, email, phone, password } = req.body;
 
     // ✅ VALIDATION (VERY IMPORTANT FOR PRODUCTION)
