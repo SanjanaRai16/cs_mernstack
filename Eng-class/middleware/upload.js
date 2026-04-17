@@ -1,22 +1,13 @@
-import nodemailer from 'nodemailer'
-import 'dotenv/config'
+import multer from "multer";
 
-const transporter = nodemailer.createTransport({
-  service:'gmail',
-  auth: {
-    user: process.env.USER_EMAIL,
-    pass: process.env.USER_PASSWORD,
-  },
-});
+const storage = multer.diskStorage({
+    destination: function(req, file, cb){
+        cb(null, "uploads/")
+    },
+    filename: function(req, file, cb){
+        cb(null,Date.now()+"-"+file.originalname)  //841532-photo.png
+    }
+})
 
-const sendEmail = async(to, subject, html) => {
-    await transporter.sendMail({
-        from:process.env.USER_EMAIL,
-        to,
-        subject,
-        html
-    })
-    console.log("message sent")
-}
-
-export default sendEmail;
+const upload = multer({storage})
+export default upload;
