@@ -1,97 +1,68 @@
-import User from '../models/User.js'
-import bcrypt from 'bcrypt'
-import sendEmail from '../services/emailSet.js';
-import jwt from 'jsonwebtoken'
+import User from '../models/User.js';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
-const SECRET_KEY = process.env.JWT_SECRET
+const SECRET_KEY = process.env.JWT_SECRET;
 
 export const registeruser = async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
 
+    // ✅ VALIDATION (VERY IMPORTANT FOR PRODUCTION)
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, email, and password are required!"
+      });
+    }
+
+    // ✅ CHECK USER EXISTS
     const userexist = await User.findOne({ email });
+
     if (userexist) {
       return res.status(400).json({
         success: false,
-        message: " User already exist!"
-      })
+        message: "User already exists!"
+      });
     }
 
+    // ✅ HASH PASSWORD SAFELY
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // ✅ CREATE USER
     const userData = await User.create({
       name,
       email,
       phone,
       password: hashedPassword
-    })
+    });
 
-  //   await sendEmail(email, 'welcome to SocialConnect',
-  //     `<div style="margin:0;padding:0;background-color:#f4f6f8;font-family:Arial,Helvetica,sans-serif;">
-  //   <table align="center" width="100%" cellpadding="0" cellspacing="0"
-  //     style="max-width:600px;margin:auto;background:#ffffff;border-radius:10px;
-  //     overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+    // ❌ EMAIL TEMPORARILY DISABLED (CAUSE OF YOUR 500 ERROR)
+    console.log("User created successfully:", email);
 
-  //     <tr>
-  //       <td style="background:linear-gradient(135deg,#4f46e5,#7c3aed);
-  //         padding:30px;text-align:center;color:white;">
-  //         <h1 style="margin:0;font-size:26px;">SocialConnect</h1>
-  //         <p style="margin:6px 0 0;font-size:14px;opacity:0.9;">
-  //           Connect • Share • Grow
-  //         </p>
-  //       </td>
-  //     </tr>
+    // (OPTIONAL) JWT TOKEN (you can add later if needed)
+    // const token = jwt.sign(
+    //   { id: userData._id, name: userData.name },
+    //   SECRET_KEY,
+    //   { expiresIn: "7d" }
+    // );
 
-  //     <tr>
-  //       <td style="padding:30px;color:#333;">
-  //         <h2 style="margin-top:0;">Welcome, ${name} 👋</h2>
-
-  //         <p style="line-height:1.6;font-size:15px;color:#555;">
-  //           We’re excited to have you join <b>SocialConnect</b>.
-  //           Start connecting with people, sharing posts,
-  //           and exploring communities right away.
-  //         </p>
-
-  //         <div style="text-align:center;margin:30px 0;">
-  //           <a href="https://yourapp.com"
-  //             style="background:#4f46e5;color:white;text-decoration:none;
-  //             padding:12px 24px;border-radius:6px;font-size:15px;
-  //             font-weight:bold;display:inline-block;">
-  //             Get Started
-  //           </a>
-  //         </div>
-
-  //         <p style="font-size:13px;color:#888;">
-  //           If you did not create this account, please ignore this email.
-  //         </p>
-  //       </td>
-  //     </tr>
-
-  //     <tr>
-  //       <td style="background:#f1f3f5;padding:15px;text-align:center;
-  //         font-size:12px;color:#777;">
-  //         © ${new Date().getFullYear()} SocialConnect. All rights reserved.
-  //       </td>
-  //     </tr>
-
-  //   </table>
-  // </div>`
-  //   )
-
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      message: " Data added successfully!",
+      message: "User registered successfully!",
       data: userData
-    })
+    });
 
   } catch (error) {
-    console.log(error)
-    res.status(500).json({
-      success: false,
-      message: "internal server error!"
-    })
-  }
-}
+    console.log("REGISTER ERROR:", error);
 
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error!",
+      error: error.message
+    });
+  }
+};
 
 export const loginUser = async (req, res) => {
   try {
