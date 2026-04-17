@@ -1,22 +1,44 @@
-import nodemailer from 'nodemailer'
-import 'dotenv/config'
+import mongoose from "mongoose";
 
-const transporter = nodemailer.createTransport({
-  service:'gmail',
-  auth: {
-    user: process.env.USER_EMAIL,
-    pass: process.env.USER_PASSWORD,
-  },
-});
+const userSchema = new mongoose.Schema({
+    name:{
+        type: String,
+        required: true
+    },
+    email:{
+        type: String,
+        required: true
+    },
+    phone:{
+        type: String,
+        required: true
+    },
+    password:{
+        type: String,
+        required: true
+    },
+    profilePicture: {
+       type: String 
+    },
+    bio: {
+        type: String
+    },
+    followers: [{
+        follower:{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'user'
+        }
+    }],
+    following: [{
+        followed : {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'user'
+        }
+    }],
 
-const sendEmail = async(to, subject, html) => {
-    await transporter.sendMail({
-        from:process.env.USER_EMAIL,
-        to,
-        subject,
-        html
-    })
-    console.log("message sent")
-}
+},
+{timestamps: true}
+)
 
-export default sendEmail;
+const User= mongoose.model('user',userSchema);
+export default User;
